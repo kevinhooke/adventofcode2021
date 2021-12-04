@@ -1,10 +1,9 @@
 package kh.adventofcode.day1;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.List;
+
+import kh.adventofcode.utils.FileReaderUtils;
 
 /**
  * Advent of code day 1: Sonar Sweep part 2
@@ -18,8 +17,9 @@ public class SonarSweepPart2SlidingWindows {
 
 	public static void main(String[] args) throws Exception {
 		SonarSweepPart2SlidingWindows sweep = new SonarSweepPart2SlidingWindows();
+		FileReaderUtils utils = new FileReaderUtils();
 		
-		List<Integer> measurements = sweep.readInputFile("/day1-puzzleinput.txt");
+		List<Integer> measurements = utils.readIntsFromInputFile("/day1-puzzleinput.txt");
 		
 		long result = sweep.countDepthMeasurementsInSlidingWindow(3, measurements);
 		System.out.println("Measurement increases: " + result);
@@ -73,36 +73,6 @@ public class SonarSweepPart2SlidingWindows {
 		return increasedCount;
 	}
 
-	/**
-	 * Reads input file and builds List of the values.
-	 * 
-	 * @return list of measurements
-	 * @throws IOException
-	 */
-	private List<Integer> readInputFile(String inputFilename) throws IOException {
-		List<Integer> result = new ArrayList<>(); 
 
-		InputStreamReader file = null;
-		BufferedReader bufReader = null;
-		try {
-			file = new InputStreamReader(this.getClass().getResourceAsStream(inputFilename));
-
-			bufReader = new BufferedReader(file);
-			String line = null;
-			
-			while ((line = bufReader.readLine()) != null) {
-				int currentReading = Integer.parseInt(line);
-				result.add(currentReading);
-				
-			}
-		} catch (IOException ioe) {
-			System.out.println(ioe);
-		} finally {
-			bufReader.close();
-			file.close();
-		}
-
-		return result;
-	}
 
 }
