@@ -14,7 +14,9 @@ public class Diagnostics {
 		System.out.println("Gamma rate: " + result.getGammaValue());
 		System.out.println("Epsilon rate: " + result.getEpsilonValue());
 		System.out.println("Calculated result: " + result.getCalculatedValue());
-		System.out.println("O2 diag value: " + result.getO2reading());
+		System.out.println("O2 diag rating: " + result.getO2reading());
+		System.out.println("CO2 diag rating: " + result.getCo2ScrubberRating());
+		System.out.println("Life support rating: " + result.calculateLifeSupportRating());
 	}
 
 	DiagsResult checkDiagnostics(String filename) throws Exception{
@@ -66,8 +68,15 @@ public class Diagnostics {
 		
 		List<String> o2ratingFilteredValue = this.findOxygenGeneratorRating(values, numberOfDiagValues, diagValueLength, 0);
 		
-		//TODO check for 1 remaining value, this is the filtered o2 reading
+		//check for 1 remaining value, this is the filtered o2 reading
 		result.setO2reading(Integer.parseInt(o2ratingFilteredValue.get(0), 2));
+
+		List<String> co2ScrubberRatingValues = this.findCO2ScrubberRating(values, numberOfDiagValues, diagValueLength, 0);
+		
+		//check for 1 remaining value, this is the filtered o2 reading
+		result.setCo2ScrubberRating(Integer.parseInt(co2ScrubberRatingValues.get(0), 2));
+
+		
 		return result;
 	}
 
@@ -176,6 +185,59 @@ public class Diagnostics {
 		}
 		return result;
 	}
+
+	
+	private List<String> findCO2ScrubberRating(List<String> values, int numberOfDiagValues, int diagValueLength,
+			int startingDiagBitPosition) {
+		
+		int[] bitCountsPerPosition = countCurrentDiagValues(values, diagValueLength);
+		
+		//in each bit position, find least common value, 1s or 0s
+		List<String> matchingValues = null;
+		
+		int leastCommonBit = this.getLeastCommonBitInCurrentBitPosition(bitCountsPerPosition, numberOfDiagValues, 
+				startingDiagBitPosition, true);
+		
+		//keep only values with least common bit in current bit position
+		final int currentDiagBitPosition = startingDiagBitPosition; 
+		matchingValues = values.stream()
+				.filter(value -> value.substring(currentDiagBitPosition, currentDiagBitPosition + 1)
+						.equals(Integer.toBinaryString(leastCommonBit)))
+				.collect(Collectors.toList());
+		
+		numberOfDiagValues = matchingValues.size(); 
+		startingDiagBitPosition++;
+		
+		if(matchingValues.size() > 1) {
+			matchingValues = this.findCO2ScrubberRating(matchingValues, numberOfDiagValues, diagValueLength,
+					startingDiagBitPosition);
+		}
+
+		return matchingValues;
+	}
+
+	int getLeastCommonBitInCurrentBitPosition(int[] bitCountsPerPosition, int numberOfDiagValues, int bitPositionFromLeft,
+			boolean co2ReadingEqualValuesCondition) {
+		int result = 0;
+		
+		// For CO2 reading: "If 0 and 1 are equally common, keep values with a 0 in the position being considered."
+		if(co2ReadingEqualValuesCondition &&
+				bitCountsPerPosition[bitPositionFromLeft] == numberOfDiagValues - bitCountsPerPosition[bitPositionFromLeft]) {
+			result = 0;
+		}
+		else if(bitCountsPerPosition[bitPositionFromLeft] > numberOfDiagValues - bitCountsPerPosition[bitPositionFromLeft]) {
+			//System.out.println("position " + i + " has more 1s than 0s (" 
+			//		+ bitCountsPerPosition[i] + ")");
+			result = 0;
+		}
+		else {
+			//System.out.println("position " + i + " has more 0s than 1s (" 
+			//		+ (numberOfDiagValues - bitCountsPerPosition[i]) + ")");
+			result = 1;
+		}
+		return result;
+	}
+
 	
 	private StringBuilder getGammaBits(int numberOfDiagValues, int diagValueLength, int[] bitCountsPerPosition) {
 		StringBuilder gammaBits = new StringBuilder(); 

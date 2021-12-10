@@ -7,6 +7,7 @@ public class DiagsResult {
 	private int gammaValue;
 	private int epsilonValue;
 	private int o2reading;
+	private int co2ScrubberRating;
 	
 	public String getGammaStringRep() {
 		return gammaStringRep;
@@ -41,5 +42,14 @@ public class DiagsResult {
 	}
 	public void setO2reading(int o2reading) {
 		this.o2reading = o2reading;
+	}
+	public int getCo2ScrubberRating() {
+		return co2ScrubberRating;
+	}
+	public void setCo2ScrubberRating(int co2ScrubberRating) {
+		this.co2ScrubberRating = co2ScrubberRating;
+	}
+	public int calculateLifeSupportRating() {
+		return this.o2reading * this.co2ScrubberRating;
 	}
 }
